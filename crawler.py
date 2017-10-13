@@ -22,19 +22,16 @@ class TorrentCrawler:
         root = html.fromstring(content)
 
         # must remove tbody(//*[@id="blist"]/table/tr[3]/td[3]/a[2] -> tr[x] is loop)
-        ''' for tags in root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]'):
-            title = tags.xpath('.//text()')[0].strip()
-            link = tags.xpath('.//@href')[0].strip()
-            print(title + '-----' + link)
-        '''
         magnets_list = root.xpath('//*[@id="blist"]/table/tr/td[1]/a/@href')
         titles_list = root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/text()')
         links_list = root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/@href')
+
         # remove first element of magnets(ad)
         magnets_list = magnets_list[1:]
 
-        p = re.compile('[A-F0-9]{40}') # extract magnet hash key
-        magnets = [p.search(x).group() for x in magnets_list]
+        # extract magnet hash key
+        p = re.compile('[A-F0-9]{40}')
+        magnets = ['magnet:?xt=urn:btih:' + p.search(x).group() for x in magnets_list]
         titles = [x.strip() for x in titles_list]
         links = [x for x in links_list]
 

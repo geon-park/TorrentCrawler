@@ -4,36 +4,35 @@ import re
 
 
 class TorrentCrawler:
-    BASE_URL = "https://torrentkim10.net/"
+    def __init__(self, base_url):
+        self.BASE_URL = base_url
 
-    def __init__(self):
-        pass
+    def make_url(self, sub_path, **parameters):
+        url = self.BASE_URL + sub_path
+        for k, v in parameters.items():
+            url += k + '=' + urllib.request.quote(v) + '&'
 
-    def make_url(self, keyword, category=''):
-        url = self.BASE_URL + 'bbs/s.php?k=' + urllib.request.quote(keyword) + '&b=' + category
+        url = url.rstrip('&')
+        print(url)
         return url
 
     def search_torrent(self, keyword, category='', decode='utf-8'):
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
                      'Chrome/61.0.3163.100 Safari/537.36'
 
-        req = urllib.request.Request(self.make_url(keyword, category), headers={'User-Agent': user_agent})
+        url = self.make_url('/bbs/s.php?', **{'k': keyword, 'b': category})
+        req = urllib.request.Request(url, headers={'User-Agent': user_agent})
         content = urllib.request.urlopen(req).read()
         root = html.fromstring(content)
 
-        # must remove tbody(//*[@id="blist"]/table/tr[3]/td[3]/a[2] -> tr[x] is loop)
-        magnets_list = root.xpath('//*[@id="blist"]/table/tr/td[1]/a/@href')
-        titles_list = root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/text()')
-        links_list = root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/@href')
-
-        # remove first element of magnets(ad)
-        magnets_list = magnets_list[1:]
-
-        # extract magnet hash key
+        # to extract magnet hash key
         p = re.compile('[A-F0-9]{40}')
-        magnets = ['magnet:?xt=urn:btih:' + p.search(x).group() for x in magnets_list]
-        titles = [x.strip() for x in titles_list]
-        links = [x for x in links_list]
 
+        # must remove tbody(//*[@id="blist"]/table/tr[3]/td[3]/a[2] -> tr[x] is loop)
+        magnets = ['magnet:?xt=urn:btih:' + p.search(x).group() for x in root.xpath('//*[@id="blist"]/table/tr/td[1]/a/@href') if p.search(x)]
+        titles = [x.strip() for x in root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/text()')]
+        links = root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/@href')
+
+        # zip magnets, titles and links
         result_list = list(zip(magnets, titles, links))
         return result_list

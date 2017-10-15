@@ -43,16 +43,11 @@ class TorrentCrawler:
 
         response.encoding = encoding
         root = html.fromstring(response.text)
-        # to extract magnet hash key
-        p = re.compile('[A-F0-9]{40}')
 
         titles = [x.strip() for x in root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/text()')]
-        magnets = ['magnet:?xt=urn:btih:' + p.search(x).group()
-                   for x in root.xpath('//*[@id="blist"]/table/tr/td[1]/a/@href') if p.search(x)]
-        links = [self.get_torrent_link(self.BASE_URL + x[2:])
-                 for x in root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/@href')]
+        links = [self.BASE_URL + link[2:] for link in root.xpath('//*[@id="blist"]/table/tr/td[3]/a[2]/@href')]
 
-        result_list = list(zip(titles, magnets, links))
+        result_list = list(zip(titles, links))
         return result_list
 
     def get_top10(self, category, encoding='utf-8'):
@@ -68,13 +63,8 @@ class TorrentCrawler:
         response.encoding = encoding
         root = html.fromstring(response.text)
 
-        magnets = list()
-        links = list()
-
         titles = [x.strip() for x in root.xpath('//*[@id="bbs_latest_list"]/table/tr/td/a/text()')]
-        for link in root.xpath('//*[@id="bbs_latest_list"]/table/tr/td/a/@href'):
-            magnets.append(self.get_magnet_link(self.BASE_URL + link[2:]))
-            links.append(self.get_torrent_link(self.BASE_URL + link[2:]))
+        links = [self.BASE_URL + link[2:] for link in root.xpath('//*[@id="bbs_latest_list"]/table/tr/td/a/@href')]
 
-        result_list = list(zip(titles, magnets, links))
+        result_list = list(zip(titles, links))
         return result_list

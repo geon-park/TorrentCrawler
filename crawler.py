@@ -6,11 +6,11 @@ import re
 class TorrentCrawler:
     def __init__(self, base_url):
         self.BASE_URL = base_url
+        self.USER_AGENT_HEADER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
+                     'Chrome/61.0.3163.100 Safari/537.36'
 
     def get_link(self, url, xpath, encoding='utf-8'):
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
-                     'Chrome/61.0.3163.100 Safari/537.36'
-        headers = {'User-Agent': user_agent}
+        headers = {'User-Agent': self.USER_AGENT_HEADER}
 
         response = requests.get(url, headers=headers)
         if response.status_code != requests.codes.ok:
@@ -32,8 +32,7 @@ class TorrentCrawler:
 
     def search_torrent(self, keyword, category='', encoding='utf-8'):
         url = self.BASE_URL + '/bbs/s.php'
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
-                     'Chrome/61.0.3163.100 Safari/537.36'
+        user_agent = self.USER_AGENT_HEADER
         headers = {'User-Agent': user_agent}
         data = {'k': keyword, 'b': category}
 
@@ -52,8 +51,7 @@ class TorrentCrawler:
 
     def get_top10(self, category, encoding='utf-8'):
         url = self.BASE_URL + '/' + category + '/torrent1.htm'
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
-                     'Chrome/61.0.3163.100 Safari/537.36'
+        user_agent = self.USER_AGENT_HEADER
         headers = {'User-Agent': user_agent}
 
         response = requests.get(url, headers=headers)
